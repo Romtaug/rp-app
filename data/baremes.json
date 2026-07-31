@@ -1,0 +1,296 @@
+{
+  "_derniere_verification": "2026-07-31",
+  "_avertissement": "Baremes verifies le 31/07/2026 sur sources publiques (decret n. 2025-299, arrete du 24 fevrier 2026, actionlogement.fr via presse specialisee). Les valeurs marquees _estimation restent a confirmer. Modifie ce fichier, pas le code.",
+  "coefficient_familial_tranche": {
+    "_note": "Diviseur du RFR pour determiner la tranche PTZ. Confirme jusqu'a 4 personnes (ex officiel : 4 pers = 2.0).",
+    "1": 1.0,
+    "2": 1.4,
+    "3": 1.7,
+    "4": 2.0,
+    "5": 2.3,
+    "6": 2.6,
+    "7": 2.9,
+    "8": 3.3
+  },
+  "multiplicateur_plafond_ressources_ptz": {
+    "_note": "Multiplicateur du plafond tranche 4 pour l'eligibilite PTZ (ex : zone B1 couple = 34500 x 1.5 = 51750).",
+    "1": 1.0,
+    "2": 1.5,
+    "3": 1.8,
+    "4": 2.1,
+    "5": 2.4,
+    "6": 2.7,
+    "7": 3.0,
+    "8": 3.3
+  },
+  "ptz_tranches": {
+    "_note": "Decret n. 2025-299 du 29 mars 2025. Differes : T1=10 ans, T2=8, T3=2, T4=0. Durees totales 25/22/15/10.",
+    "A": [
+      {
+        "tranche": 1,
+        "plafond_revenu_retenu": 25000,
+        "quotite": 0.5,
+        "differe_ans": 10,
+        "duree_totale_ans": 25
+      },
+      {
+        "tranche": 2,
+        "plafond_revenu_retenu": 31000,
+        "quotite": 0.4,
+        "differe_ans": 8,
+        "duree_totale_ans": 22
+      },
+      {
+        "tranche": 3,
+        "plafond_revenu_retenu": 37000,
+        "quotite": 0.4,
+        "differe_ans": 2,
+        "duree_totale_ans": 15
+      },
+      {
+        "tranche": 4,
+        "plafond_revenu_retenu": 49000,
+        "quotite": 0.2,
+        "differe_ans": 0,
+        "duree_totale_ans": 10
+      }
+    ],
+    "Abis": [
+      {
+        "tranche": 1,
+        "plafond_revenu_retenu": 25000,
+        "quotite": 0.5,
+        "differe_ans": 10,
+        "duree_totale_ans": 25
+      },
+      {
+        "tranche": 2,
+        "plafond_revenu_retenu": 31000,
+        "quotite": 0.4,
+        "differe_ans": 8,
+        "duree_totale_ans": 22
+      },
+      {
+        "tranche": 3,
+        "plafond_revenu_retenu": 37000,
+        "quotite": 0.4,
+        "differe_ans": 2,
+        "duree_totale_ans": 15
+      },
+      {
+        "tranche": 4,
+        "plafond_revenu_retenu": 49000,
+        "quotite": 0.2,
+        "differe_ans": 0,
+        "duree_totale_ans": 10
+      }
+    ],
+    "B1": [
+      {
+        "tranche": 1,
+        "plafond_revenu_retenu": 21500,
+        "quotite": 0.5,
+        "differe_ans": 10,
+        "duree_totale_ans": 25
+      },
+      {
+        "tranche": 2,
+        "plafond_revenu_retenu": 26000,
+        "quotite": 0.4,
+        "differe_ans": 8,
+        "duree_totale_ans": 22
+      },
+      {
+        "tranche": 3,
+        "plafond_revenu_retenu": 31000,
+        "quotite": 0.4,
+        "differe_ans": 2,
+        "duree_totale_ans": 15
+      },
+      {
+        "tranche": 4,
+        "plafond_revenu_retenu": 34500,
+        "quotite": 0.2,
+        "differe_ans": 0,
+        "duree_totale_ans": 10
+      }
+    ],
+    "B2": [
+      {
+        "tranche": 1,
+        "plafond_revenu_retenu": 18000,
+        "quotite": 0.5,
+        "differe_ans": 10,
+        "duree_totale_ans": 25
+      },
+      {
+        "tranche": 2,
+        "plafond_revenu_retenu": 22000,
+        "quotite": 0.4,
+        "differe_ans": 8,
+        "duree_totale_ans": 22
+      },
+      {
+        "tranche": 3,
+        "plafond_revenu_retenu": 27000,
+        "quotite": 0.4,
+        "differe_ans": 2,
+        "duree_totale_ans": 15
+      },
+      {
+        "tranche": 4,
+        "plafond_revenu_retenu": 31500,
+        "quotite": 0.2,
+        "differe_ans": 0,
+        "duree_totale_ans": 10
+      }
+    ],
+    "C": [
+      {
+        "tranche": 1,
+        "plafond_revenu_retenu": 15000,
+        "quotite": 0.5,
+        "differe_ans": 10,
+        "duree_totale_ans": 25
+      },
+      {
+        "tranche": 2,
+        "plafond_revenu_retenu": 19500,
+        "quotite": 0.4,
+        "differe_ans": 8,
+        "duree_totale_ans": 22
+      },
+      {
+        "tranche": 3,
+        "plafond_revenu_retenu": 24000,
+        "quotite": 0.4,
+        "differe_ans": 2,
+        "duree_totale_ans": 15
+      },
+      {
+        "tranche": 4,
+        "plafond_revenu_retenu": 28500,
+        "quotite": 0.2,
+        "differe_ans": 0,
+        "duree_totale_ans": 10
+      }
+    ]
+  },
+  "ptz_quotite_individuel": {
+    "_note": "Maison individuelle neuve : 30/20/20/10 par tranche. PSLA et BRS individuels gardent la grille collectif.",
+    "1": 0.3,
+    "2": 0.2,
+    "3": 0.2,
+    "4": 0.1
+  },
+  "ptz_quotite_vente_hlm": 0.2,
+  "ptz_plafond_operation": {
+    "_note": "Plafonds revalorises 2024, inchanges en 2026. Verifie : zone A 2 pers = 225000, 4 pers = 315000.",
+    "A": {
+      "1": 150000,
+      "2": 225000,
+      "3": 270000,
+      "4": 315000,
+      "5": 360000
+    },
+    "Abis": {
+      "1": 150000,
+      "2": 225000,
+      "3": 270000,
+      "4": 315000,
+      "5": 360000
+    },
+    "B1": {
+      "1": 135000,
+      "2": 202500,
+      "3": 243000,
+      "4": 283500,
+      "5": 324000
+    },
+    "B2": {
+      "1": 110000,
+      "2": 165000,
+      "3": 198000,
+      "4": 231000,
+      "5": 264000
+    },
+    "C": {
+      "1": 100000,
+      "2": 150000,
+      "3": 180000,
+      "4": 210000,
+      "5": 240000
+    }
+  },
+  "plafond_ressources_psla_brs": {
+    "_note": "Arrete du 24 fevrier 2026, en vigueur le 8 mars 2026. Zones Abis/A/B1 groupees. Verifie : 1p=38844, 2p=58057, 4p=83594 (groupe A), 1p=33771, 2p=45100 (B2/C). Les valeurs 3p et 5p sont des _estimations a confirmer sur hlm.coop ou ANIL.",
+    "A": {
+      "1": 38844,
+      "2": 58057,
+      "3": 69830,
+      "4": 83594,
+      "5": 97200
+    },
+    "Abis": {
+      "1": 38844,
+      "2": 58057,
+      "3": 69830,
+      "4": 83594,
+      "5": 97200
+    },
+    "B1": {
+      "1": 38844,
+      "2": 58057,
+      "3": 69830,
+      "4": 83594,
+      "5": 97200
+    },
+    "B2": {
+      "1": 33771,
+      "2": 45100,
+      "3": 54240,
+      "4": 65480,
+      "5": 77020
+    },
+    "C": {
+      "1": 33771,
+      "2": 45100,
+      "3": 54240,
+      "4": 65480,
+      "5": 77020
+    }
+  },
+  "action_logement": {
+    "_note": "Verifie : 30000 a 1% fixe hors assurance, 25 ans max, 40% du cout d'operation. 40000 en vente HLM. Primo ou non-proprietaire RP depuis 10 ans.",
+    "montant_standard": 30000,
+    "montant_vente_hlm": 40000,
+    "taux": 0.01,
+    "duree_max_ans": 25,
+    "plafond_part_operation": 0.4,
+    "plafond_non_applicable": [
+      "BRS",
+      "Vente HLM"
+    ]
+  },
+  "pret_principal": {
+    "_note": "Taux moyen 25 ans constate ete 2026 : environ 3.45%.",
+    "taux_pas_indicatif": 0.0345,
+    "duree_max_ans": 25,
+    "taux_assurance_annuel_sur_capital": 0.0036
+  },
+  "brs": {
+    "redevance_eur_m2_mois_defaut": 1.7,
+    "redevance_grand_lyon_plafond": 1.7
+  },
+  "frais": {
+    "notaire_neuf_ou_brs": 0.03,
+    "notaire_ancien_libre": 0.075,
+    "garantie_bancaire": 0.012
+  },
+  "hcsf": {
+    "taux_effort_max": 0.35,
+    "taux_effort_derogation": 0.4,
+    "duree_max_ans": 25,
+    "part_loyers_retenue": 0.7
+  }
+}
