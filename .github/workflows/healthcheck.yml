@@ -1,0 +1,26 @@
+name: Healthcheck des sources
+
+on:
+  schedule:
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+
+jobs:
+  healthcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installer les dependances
+        run: pip install requests
+
+      - name: Tester les six sources et l'age des baremes
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          MAIL_DEST: ${{ secrets.MAIL_DEST }}
+          MAIL_EXP: ${{ secrets.MAIL_EXP }}
+        run: python scripts/healthcheck.py
