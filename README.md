@@ -25,7 +25,7 @@ streamlit run app.py
 | Guide débutant | Les dispositifs expliqués de zéro : fiches BRS/PSLA/vente HLM/prix maîtrisé, les 3 prêts, lequel choisir, le parcours en 7 étapes, les 8 pièges, qui appeler |
 | Tableau de bord | Ta capacité d'emprunt, tes plafonds, ta tranche PTZ, et un glossaire complet |
 | Simulateur de montage | Le plan de financement empilé et les deux phases de mensualité, avec verdict |
-| Évaluateur d'adresse | Décote contre les ventes réelles, DPE, risques, zonage, pour une adresse donnée |
+| Évaluateur d'adresse | Décote contre les ventes réelles, DPE, risques avec argile et radon, parcelle et zonage, vie de quartier OpenStreetMap, écoles avec indice de position sociale |
 | Générateur de liens | Les URL de recherche à enregistrer en alertes sur les portails |
 | Diagnostic des sources | Teste chaque API et te dit laquelle est cassée |
 
@@ -39,6 +39,12 @@ streamlit run app.py
 | Géorisques | Inondation, argile, radon, pollution des sols | Non |
 | API Carto GPU (IGN) | Zonage du plan local d'urbanisme, servitudes | Non |
 | data.grandlyon | Programmes en bail réel solidaire de la Métropole | Non |
+| geo.api.gouv.fr | Population, surface et densité de la commune | Non |
+| API Carto cadastre (IGN) | Parcelle : section, numéro, contenance | Non |
+| Géorisques RGA et radon | Exposition argile à la parcelle, classe radon de la commune | Non |
+| OpenStreetMap Overpass | Transports, écoles, commerces, santé autour de l'adresse | Non |
+| data.education.gouv.fr | Écoles et collèges avec indice de position sociale (IPS) | Non |
+| BoRiS (boris.beta.gouv.fr) | Annuaire national des sites diffusant des annonces BRS, et OFS compétents par adresse | Non |
 
 ## Deux choses que tu dois savoir
 
@@ -50,7 +56,7 @@ streamlit run app.py
 
 **La veille** (`.github/workflows/veille.yml`) tourne chaque matin à 6h, compare les programmes disponibles avec l'état de la veille stocké dans `etat/etat.json`, et n'envoie un mail que s'il y a du nouveau, avec un tableau déjà chiffré : prix au m², mensualité en phase 2, verdict finançable ou non.
 
-**Le healthcheck** (`.github/workflows/healthcheck.yml`) tourne chaque lundi à 7h. Il appelle les six API de l'app et vérifie l'âge des barèmes (alerte au-delà de 330 jours). En cas de panne, le run passe au rouge et **GitHub t'envoie nativement un mail d'échec, sans aucune configuration**. Si les secrets Brevo sont présents, un mail détaillé nommant la source tombée est envoyé en plus. Silence total quand tout va bien.
+**Le healthcheck** (`.github/workflows/healthcheck.yml`) tourne chaque lundi à 7h. Il appelle les treize sources de l'app et vérifie l'âge des barèmes (alerte au-delà de 330 jours). En cas de panne, le run passe au rouge et **GitHub t'envoie nativement un mail d'échec, sans aucune configuration**. Si les secrets Brevo sont présents, un mail détaillé nommant la source tombée est envoyé en plus. Silence total quand tout va bien.
 
 Secrets GitHub optionnels pour les mails Brevo : `BREVO_API_KEY`, `MAIL_DEST`, `MAIL_EXP`. Pour la veille, active aussi Settings > Actions > General > Workflow permissions > Read and write.
 
