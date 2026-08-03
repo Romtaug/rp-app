@@ -44,6 +44,20 @@ def tester_sources() -> list:
         dpe = lib.dpe_par_commune(d["code_insee"], 5)
         resultats.append(("ADEME, DPE", dpe["ok"],
                           dpe.get("message", dpe.get("source", ""))))
+        fc = lib.fiche_commune(d["code_insee"])
+        resultats.append(("geo.api.gouv.fr, commune", fc["ok"], fc.get("message", "")))
+        pc = lib.parcelle_cadastre(d["lat"], d["lon"])
+        resultats.append(("API Carto, cadastre", pc["ok"], pc.get("message", "")))
+        a = lib.argile_rga(d["lat"], d["lon"])
+        resultats.append(("Georisques, argile RGA", a["ok"], a.get("message", "")))
+        rd = lib.radon(d["code_insee"])
+        resultats.append(("Georisques, radon", rd["ok"], rd.get("message", "")))
+        o = lib.equipements_osm(d["lat"], d["lon"], 400)
+        resultats.append(("OpenStreetMap Overpass", o["ok"], o.get("message", "")))
+        e = lib.ecoles_education(d["code_insee"], 5)
+        resultats.append(("Education nationale, ecoles et IPS", e["ok"], e.get("message", "")))
+        bo = lib.boris_sites_annonces(d["lat"], d["lon"], 30, 5)
+        resultats.append(("BoRiS, sites d'annonces BRS", bo["ok"], bo.get("message", "")))
     else:
         resultats.append(("Tests dependants du geocodage", False,
                           "non executes, geocodage en panne"))
