@@ -338,7 +338,7 @@ def page_evaluateur(p, cap):
         return
     d = g["donnees"]
 
-    v = ventes_dvf_c(d["lat"], d["lon"], rayon)
+    v = ventes_dvf_c(d["lat"], d["lon"], rayon, d["code_insee"])
     dec = lib.decote(prix / surface, v["donnees"]) if v["ok"] else None
     m = lib.montage(prix, surface, p["rfr"], p["occupants"], p["zone"],
                     dispositif, 8000, B, p["al_eligible"])
@@ -362,11 +362,11 @@ def page_evaluateur(p, cap):
     c1, c2, c3 = st.columns(3)
     c1.metric("Prix au m²", euros(prix / surface))
     c2.metric("Médiane du secteur",
-              euros(dec["mediane_m2"]) if dec and dec.get("ok") else "—",
+              euros(dec["mediane_m2"]) if dec and dec.get("ok") else "n/d",
               help=lib.aide("decote"))
     c3.metric("Population",
               f"{fc['donnees']['population']:,}".replace(",", "\u202f")
-              if fc["ok"] and fc["donnees"].get("population") else "—")
+              if fc["ok"] and fc["donnees"].get("population") else "n/d")
 
     onglets = st.tabs(["Marché", "Énergie", "Risques", "Urbanisme",
                        "Vie de quartier"])
@@ -397,10 +397,10 @@ def page_evaluateur(p, cap):
         c1, c2 = st.columns(2)
         c1.metric("Argile",
                   str(a["donnees"]["exposition"]).capitalize()
-                  if a["ok"] else "—", help=lib.aide("argile"))
+                  if a["ok"] else "n/d", help=lib.aide("argile"))
         c2.metric("Radon",
                   f"classe {r2['donnees']['classe']}"
-                  if r2["ok"] and r2["donnees"]["classe"] else "—",
+                  if r2["ok"] and r2["donnees"]["classe"] else "n/d",
                   help=lib.aide("radon"))
         r = risques_c(d["code_insee"], d["lat"], d["lon"])
         if not r["ok"]:
@@ -420,7 +420,7 @@ def page_evaluateur(p, cap):
                       help=lib.aide("parcelle"))
             cont = pc["donnees"].get("contenance_m2")
             c2.metric("Contenance du terrain",
-                      f"{cont:,} m²".replace(",", "\u202f") if cont else "—")
+                      f"{cont:,} m²".replace(",", "\u202f") if cont else "n/d")
         z = zonage_c(d["lat"], d["lon"])
         if not z["ok"]:
             ui.verdict("non", "Zonage indisponible", z.get("message"))
@@ -552,7 +552,7 @@ def page_diagnostic(p, cap):
             d = g["donnees"]
             for libelle, res in [
                 ("DVF, ventes réelles",
-                 lib.ventes_dvf(d["lat"], d["lon"], 300)),
+                 lib.ventes_dvf(d["lat"], d["lon"], 300, d["code_insee"])),
                 ("API Carto GPU, zonage",
                  lib.zonage_urbanisme(d["lat"], d["lon"])),
                 ("Géorisques, rapport",
@@ -595,7 +595,7 @@ def page_diagnostic(p, cap):
 
     for nom, o, msg in tests:
         (st.success if o else st.error)(
-            f"{nom} — {msg or ('opérationnel' if o else 'échec')}")
+            f"{nom} : {msg or ('opérationnel' if o else 'échec')}")
 
 
 # ----------------------------------------------------------------------
