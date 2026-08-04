@@ -260,3 +260,168 @@ QUI_APPELER = """
 - Action Logement (actionlogement.fr) : dépôt en ligne dès que tu as une
   réservation ou un compromis.
 """
+
+
+# ----------------------------------------------------------------------
+# Seconde moitié de l'achat : visiter, offrir, signer
+# ----------------------------------------------------------------------
+
+VISITE = [
+    ("Les documents à réclamer AVANT de faire une offre",
+     "Le vendeur doit te les fournir, ce n'est pas une faveur : règlement de "
+     "copropriété, procès-verbaux des trois dernières assemblées générales, "
+     "carnet d'entretien de l'immeuble, fiche synthétique de la copropriété, "
+     "montant des charges des deux dernières années, et le dossier de "
+     "diagnostic technique complet. Si on traîne à te les donner, c'est déjà "
+     "une information."),
+    ("Ce que tu cherches dans les procès-verbaux d'assemblée",
+     "Trois choses, et elles se lisent en dix minutes : les travaux VOTÉS mais "
+     "pas encore payés, car tu les hériteras ; les travaux refusés ou reportés "
+     "plusieurs années de suite, signe d'une copropriété qui ne veut pas "
+     "investir ; et le montant des impayés des copropriétaires, qui prédit les "
+     "appels de fonds futurs."),
+    ("Les questions à poser au vendeur ou à l'agence",
+     "Pourquoi vend-il, et depuis combien de temps le bien est en vente. Le "
+     "montant exact des charges et ce qu'elles couvrent. Les travaux prévus "
+     "dans les cinq ans. Le montant de la taxe foncière. En BRS ou PSLA : "
+     "quel organisme porte le foncier, la durée du bail, la formule "
+     "d'indexation de la redevance, et si la formule de revente intègre les "
+     "travaux d'amélioration que tu ferais."),
+    ("Ce qu'on regarde sur place, et pas sur les photos",
+     "Les fissures en façade et dans les angles de pièces, surtout en zone "
+     "argileuse. L'humidité en bas des murs et derrière les meubles. La "
+     "fenêtre ouverte pour écouter le bruit réel. La pression d'eau. Le "
+     "tableau électrique. L'état des parties communes, qui dit la santé de la "
+     "copropriété mieux qu'un bilan."),
+    ("Le second passage, celui que personne ne fait",
+     "Reviens un vendredi à 20 heures et un samedi matin. Un quartier calme un "
+     "mardi à 14 heures peut être invivable le week-end. C'est la visite la "
+     "plus rentable de toutes, et elle est gratuite."),
+]
+
+OFFRE = [
+    ("L'offre d'achat t'engage, pas le vendeur",
+     "Si le vendeur l'accepte par écrit, tu es engagé. Mets-y une date de "
+     "validité courte, quelques jours, et écris noir sur blanc qu'elle est "
+     "conditionnée à l'obtention de ton prêt. Ne signe jamais une offre sans "
+     "cette mention."),
+    ("La condition suspensive de prêt est ton filet de sécurité",
+     "Elle est prévue par la loi : si ta banque refuse, la vente est annulée "
+     "et ton dépôt te revient. Sa durée minimale légale est d'un mois, mais "
+     "négocie 45 à 60 jours, surtout avec un montage à trois prêts comme le "
+     "tien. Et fais-y inscrire le montant, le taux maximum et la durée que tu "
+     "cherches : une condition trop vague peut te piéger."),
+    ("Les dix jours de rétractation",
+     "Après la notification du compromis, tu as dix jours pour te retirer "
+     "sans motif et sans frais. Ce délai est incompressible et il ne se "
+     "négocie pas. Utilise-le pour faire relire le compromis, par l'ADIL par "
+     "exemple."),
+    ("Les conditions suspensives à ajouter selon le cas",
+     "L'obtention du prêt Action Logement, qui a ses propres délais "
+     "d'instruction. L'agrément de l'organisme de foncier solidaire en BRS, "
+     "qui peut prendre deux mois. L'absence de servitude ou de projet gênant "
+     "révélé par le certificat d'urbanisme. Chaque condition non écrite est "
+     "un risque que tu portes seul."),
+    ("Le calendrier réel, du compromis aux clés",
+     "Compte deux à trois mois. Signature du compromis, dix jours de "
+     "rétractation, puis le notaire purge les droits de préemption et rassemble "
+     "les pièces pendant que ta banque instruit. Offre de prêt reçue, onze "
+     "jours de réflexion obligatoires avant de pouvoir l'accepter. Puis "
+     "signature de l'acte authentique et remise des clés."),
+]
+
+FRAIS_REELS = [
+    ("Frais de notaire", "Environ 3 % en BRS, PSLA et neuf. 7 à 8 % dans "
+     "l'ancien libre. Les portails d'annonces affichent souvent le taux de "
+     "l'ancien par défaut, même sur une annonce BRS : fais confirmer par écrit."),
+    ("Frais de garantie", "1 à 1,5 % du montant emprunté. La caution d'un "
+     "organisme est en général moins chère qu'une hypothèque, et une partie "
+     "peut t'être restituée en fin de prêt. Demande les deux devis."),
+    ("Frais de dossier bancaires", "500 à 1 500 €, et c'est la ligne la plus "
+     "facile à faire tomber en négociation. Demande-la à zéro."),
+    ("Assurance emprunteur", "0,10 à 0,40 % par an du capital, soit souvent "
+     "plus de 10 000 € sur la durée totale. Voir la section suivante, c'est là "
+     "que se cache le plus gros gain."),
+    ("Redevance foncière en BRS", "70 à 150 € par mois selon la surface, à "
+     "vie, indexée chaque année, comptée comme une charge par la banque."),
+    ("Charges de copropriété", "50 à 200 € par mois. Demande le montant réel "
+     "des deux dernières années, pas une estimation d'agence."),
+    ("Taxe foncière", "Un à deux mois de mensualité par an. Exonérée 15 ans "
+     "en PSLA, due dès la première année en BRS. Elle est répartie au prorata "
+     "l'année de l'achat."),
+    ("Travaux et emménagement", "La ligne systématiquement sous-estimée. "
+     "Prévois une réserve, même sur du neuf : cuisine, luminaires, rideaux, "
+     "déménagement."),
+]
+
+NEGOCIER_BANQUE = [
+    ("L'assurance emprunteur, le plus gros gisement",
+     "Tu n'es pas obligé de prendre celle de ta banque : la délégation "
+     "d'assurance est un droit, à garanties équivalentes. L'écart va souvent "
+     "de 5 000 à 15 000 € sur la durée du prêt. Et depuis 2022 tu peux la "
+     "résilier à tout moment pour en changer, donc même après la signature ce "
+     "n'est jamais perdu."),
+    ("Le questionnaire médical peut disparaître",
+     "Depuis la loi de 2022, il est supprimé si la part assurée est au plus de "
+     "200 000 € par emprunteur et si le prêt s'achève avant tes 60 ans. Avec "
+     "un prêt principal modeste et ton âge, tu es très probablement dans ce "
+     "cas : tu gagnes du temps et tu évites toute surprime."),
+    ("Les indemnités de remboursement anticipé",
+     "Plafonnées par la loi à 3 % du capital restant dû ou six mois "
+     "d'intérêts, le plus faible des deux. Elles se négocient, et parfois se "
+     "suppriment. Demande-le, surtout si tu envisages de revendre ou de "
+     "renégocier un jour."),
+    ("La modularité et la transférabilité",
+     "Pouvoir moduler ta mensualité à la hausse ou à la baisse, et suspendre "
+     "quelques échéances en cas de coup dur. Ça ne coûte rien à obtenir à la "
+     "signature, et ça vaut cher le jour où tu en as besoin. La "
+     "transférabilité, plus rare, te permet de garder ton taux sur un futur "
+     "achat."),
+    ("Le lissage des prêts, indispensable dans ton cas",
+     "Avec un prêt à taux zéro en différé, ta mensualité saute quand le "
+     "différé s'arrête. Le lissage consiste à structurer le prêt principal "
+     "pour que le total reste plat sur toute la durée. Demande-le "
+     "explicitement, sinon la banque calcule sur le point haut et réduit ton "
+     "budget."),
+    ("Ce que tu apportes à la table",
+     "Un CDI, une épargne prouvée, un saut de charge faible et le statut de "
+     "primo-accédant en résidence principale, qui te place dans la cible de la "
+     "marge de flexibilité que les banques réservent en priorité. Fais jouer "
+     "deux ou trois établissements, et un courtier en parallèle."),
+]
+
+CHECKLIST = [
+    ("Avant de chercher", [
+        "Relever le revenu fiscal de référence sur l'avis N-2",
+        "Vérifier la zone de la commune visée",
+        "Tester son éligibilité sur boris.beta.gouv.fr",
+        "Prendre rendez-vous avec l'ADIL du département, c'est gratuit",
+        "Décider du sort des crédits en cours avec un courtier",
+    ]),
+    ("Pour être alerté avant les autres", [
+        "Enregistrer les alertes sur Leboncoin, SeLoger et Bienici",
+        "S'inscrire chez les bailleurs sociaux et les OFS du secteur",
+        "Demander explicitement les programmes déjà livrés et disponibles",
+        "Relancer les opérateurs toutes les 6 à 8 semaines, avec du nouveau",
+    ]),
+    ("Quand un bien sort", [
+        "Chiffrer la décote contre les ventes réelles du quartier",
+        "Calculer la mensualité en phase 2, celle que la banque teste",
+        "Vérifier les risques à l'adresse, argile et inondation en priorité",
+        "Réclamer les PV des trois dernières assemblées générales",
+        "Repasser sur place un vendredi soir et un samedi matin",
+    ]),
+    ("Avant de signer l'offre", [
+        "Faire confirmer les frais de notaire réels par écrit",
+        "Écrire la condition suspensive de prêt avec montant, taux et durée",
+        "Ajouter l'agrément de l'OFS en condition suspensive si BRS",
+        "Prévoir 45 à 60 jours pour l'obtention du prêt",
+    ]),
+    ("Pendant l'instruction bancaire", [
+        "Déposer la demande de prêt Action Logement sans attendre",
+        "Demander le lissage des prêts",
+        "Comparer l'assurance emprunteur en délégation",
+        "Négocier les frais de dossier à zéro et les indemnités anticipées",
+        "Faire relire le compromis pendant les dix jours de rétractation",
+    ]),
+]
