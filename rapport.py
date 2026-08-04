@@ -384,7 +384,7 @@ def _feuille_synthese(wb, contexte, liens, dec):
     for col, w in zip("ABCDEF", [30, 20, 20, 18, 18, 18]):
         ws.column_dimensions[col].width = w
 
-    _titre(ws, "A1", "Fiche de chiffrage, accession aidée", 18)
+    _titre(ws, "A1", "Clé de Sol, fiche de chiffrage", 18)
     _libelle(ws, "A2", f"Éditée le {date.today().strftime('%d/%m/%Y')} par "
                        f"ton outil personnel de recherche.")
     ws["A2"].font = Font(name=POLICE, size=9, italic=True, color=BRUME)
