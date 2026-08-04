@@ -145,8 +145,50 @@ def page_guide(p, cap):
         with st.expander(titre):
             st.write(texte)
 
+    st.header("La visite, ce qu'on regarde vraiment")
+    ui.note("Les quatre premières lignes se préparent avant même de "
+            "téléphoner. La dernière est la visite la plus rentable, et elle "
+            "est gratuite.")
+    for titre, texte in guide.VISITE:
+        with st.expander(titre):
+            st.write(texte)
+
+    st.header("L'offre et le compromis")
+    ui.verdict("non", "Une offre acceptée t'engage, pas le vendeur",
+               "Toute condition non écrite est un risque que tu portes seul. "
+               "Les cinq points ci-dessous sont ceux qui coûtent le plus cher "
+               "quand on les découvre trop tard.")
+    for titre, texte in guide.OFFRE:
+        with st.expander(titre):
+            st.write(texte)
+
+    st.header("Le coût réel, au-delà du prix affiché")
+    for poste, texte in guide.FRAIS_REELS:
+        st.markdown(f"**{poste}.** {texte}")
+
+    st.header("Négocier avec la banque")
+    ui.verdict("oui", "Le taux n'est pas la seule ligne négociable",
+               "L'assurance emprunteur pèse souvent plus de 10 000 € sur la "
+               "durée totale, et c'est la ligne où tu as le plus de marge.")
+    for titre, texte in guide.NEGOCIER_BANQUE:
+        with st.expander(titre):
+            st.write(texte)
+
     st.header("Qui appeler, dans l'ordre")
     st.write(guide.QUI_APPELER)
+
+    st.header("Ta checklist, de la recherche aux clés")
+    lignes_txt = ["CHECKLIST ACHAT DE RESIDENCE PRINCIPALE", "=" * 46, ""]
+    for phase, elements in guide.CHECKLIST:
+        st.markdown(f"**{phase}**")
+        for e in elements:
+            st.checkbox(e, key=f"chk_{phase}_{e}"[:120])
+        lignes_txt.append(phase.upper())
+        lignes_txt += [f"  [ ] {e}" for e in elements]
+        lignes_txt.append("")
+    st.download_button("Télécharger la checklist",
+                       "\n".join(lignes_txt),
+                       file_name="checklist-achat-rp.txt", mime="text/plain")
 
     ui.note("Ce guide vulgarise des règles vérifiées en juillet 2026 "
             "(décret n° 2025-299, arrêté du 24 février 2026). Il ne remplace "
