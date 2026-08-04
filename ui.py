@@ -35,7 +35,7 @@ def euros(x, decimales=0) -> str:
     try:
         return f"{x:,.{decimales}f}".replace(",", "\u202f") + " €"
     except (TypeError, ValueError):
-        return "—"
+        return "n/d"
 
 
 # ----------------------------------------------------------------------
@@ -56,7 +56,7 @@ def injecter_styles() -> None:
             padding-bottom: 4rem;
         }}
 
-        html, body, [class*="css"], .stMarkdown, p, li, label {{
+        .stApp, .stApp p, .stApp li, .stApp label, .stMarkdown {{
             font-family: 'IBM Plex Sans', system-ui, sans-serif;
             color: {ENCRE};
         }}
@@ -107,20 +107,36 @@ def injecter_styles() -> None:
         }}
         div[data-testid="stMetric"] {{ padding: .85rem 1rem; }}
 
-        .stButton > button, .stDownloadButton > button, .stLinkButton > a {{
+        /* Boutons : la couleur est posee sur le bouton ET sur tous ses
+           enfants, car Streamlit enveloppe le libelle dans un <p> qui
+           heriterait sinon de la couleur de texte globale. */
+        .stButton > button, .stDownloadButton > button,
+        .stFormSubmitButton > button {{
             font-family: 'IBM Plex Sans', sans-serif;
             font-weight: 600;
             border-radius: 4px;
             border: 1px solid {ENCRE};
             background: {ENCRE};
-            color: {PAPIER} !important;
             transition: background .15s ease;
         }}
+        .stButton > button, .stButton > button *,
+        .stDownloadButton > button, .stDownloadButton > button *,
+        .stFormSubmitButton > button, .stFormSubmitButton > button * {{
+            color: {PAPIER} !important;
+            fill: {PAPIER} !important;
+        }}
         .stButton > button:hover, .stDownloadButton > button:hover {{
-            background: {BATI};
+            background: {BATI}; border-color: {BATI};
         }}
         .stLinkButton > a {{
-            background: transparent; color: {ENCRE} !important;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-weight: 600;
+            border-radius: 4px;
+            border: 1px solid {ENCRE};
+            background: transparent;
+        }}
+        .stLinkButton > a, .stLinkButton > a * {{
+            color: {ENCRE} !important;
         }}
         .stLinkButton > a:hover {{ background: #DDE5EA; }}
 
@@ -308,7 +324,7 @@ _COULEURS_DPE = {"A": "#3E8F5A", "B": "#63A94C", "C": "#A8C24A",
 def pastille_dpe(lettre) -> str:
     l = str(lettre).strip().upper()[:1]
     return (f'<span class="dpe" style="background:{_COULEURS_DPE.get(l, TRAIT)}">'
-            f"{l or '?'}</span>") if l else "—"
+            f"{l or '?'}</span>") if l else "n/d"
 
 
 def note(texte: str) -> None:
@@ -486,8 +502,8 @@ def fiche_recap(adresse, commune, prix, surface, dispositif, m, cap,
     lignes = [
         "FICHE DE CHIFFRAGE - ACCESSION AIDÉE",
         "=" * 46, "",
-        f"Bien        : {adresse or '—'}",
-        f"Commune     : {commune or '—'}",
+        f"Bien        : {adresse or 'n/d'}",
+        f"Commune     : {commune or 'n/d'}",
         f"Dispositif  : {dispositif}",
         f"Prix        : {euros(prix)}",
         f"Surface     : {surface} m²",
