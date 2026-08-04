@@ -146,6 +146,21 @@ def main() -> int:
         nouveautes.append(p_enrichi)
         vus.add(k)
 
+    # Instantané complet pour que l'application puisse lire les programmes
+    # même quand data.grandlyon refuse la connexion depuis Streamlit Cloud.
+    snap = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                        "data", "programmes_brs.json")
+    try:
+        os.makedirs(os.path.dirname(snap), exist_ok=True)
+        with open(snap, "w", encoding="utf-8") as f:
+            json.dump({"date": date.today().isoformat(),
+                       "source": res.get("source", ""),
+                       "programmes": res["donnees"]},
+                      f, ensure_ascii=False, indent=1)
+        print(f"instantané écrit : {snap}")
+    except Exception as e:
+        print("instantané non écrit :", e)
+
     print(f"{len(res['donnees'])} programmes vus, {len(nouveautes)} nouveaux")
     if nouveautes:
         envoyer_mail(nouveautes)
