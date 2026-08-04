@@ -47,7 +47,7 @@ Le thème des widgets natifs vit dans `.streamlit/config.toml`, la couche prése
 | Source | Ce qu'elle apporte | Clé requise |
 |---|---|---|
 | Base Adresse Nationale | Géocodage, code INSEE. Pivot de toutes les jointures | Non |
-| DVF via api.cquest.org | Ventes réelles autour d'un point, pour calculer la décote | Non |
+| DVF, trois sources en cascade | Ventes réelles autour d'un point : api.cquest.org, puis geo-dvf d'Etalab (CSV officiel par commune), puis Cerema apidf | Non |
 | DPE ADEME | Classe énergie et consommation à l'adresse | Non |
 | Géorisques | Inondation, argile, radon, pollution des sols | Non |
 | API Carto GPU (IGN) | Zonage du plan local d'urbanisme, servitudes | Non |
