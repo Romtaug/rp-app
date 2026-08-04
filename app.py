@@ -16,6 +16,7 @@ import streamlit as st
 
 import guide
 import lib
+import rapport
 import ui
 
 st.set_page_config(page_title="Accession aidée", page_icon="🗝",
@@ -40,7 +41,6 @@ radon_c = st.cache_data(ttl=3600, show_spinner=False)(lib.radon)
 osm_c = st.cache_data(ttl=3600, show_spinner=False)(lib.equipements_osm)
 ecoles_c = st.cache_data(ttl=3600, show_spinner=False)(lib.ecoles_education)
 boris_sites_c = st.cache_data(ttl=3600, show_spinner=False)(lib.boris_sites_annonces)
-boris_ofs_c = st.cache_data(ttl=3600, show_spinner=False)(lib.boris_ofs_proche)
 
 ZONES = ["A", "Abis", "B1", "B2", "C"]
 DISPOSITIFS = ["BRS", "PSLA", "Vente HLM", "Neuf QPV", "Neuf libre", "Ancien libre"]
@@ -344,11 +344,20 @@ def page_montage(p, cap):
                 "PTZ dans l'ancien n'existe qu'en zones B2 et C avec au moins "
                 "25 % de travaux.")
 
+    st.divider()
+    st.subheader("Emporter ce chiffrage")
+    ui.note("Un classeur de sept onglets, avec graphiques et formules vivantes : "
+            "change le prix dans l'onglet Financement et tout se recalcule. "
+            "C'est le document à présenter au courtier.")
     st.download_button(
-        "Télécharger la fiche de chiffrage",
-        ui.fiche_recap(None, None, prix, surface, dispositif, m, cap),
+        "Télécharger le rapport Excel",
+        rapport.construire(prix, surface, dispositif, m, cap, lib.GLOSSAIRE,
+                           guide.CHECKLIST, B,
+                           red_m2 or B["brs"]["redevance_eur_m2_mois_defaut"]),
         file_name=f"chiffrage-{dispositif.lower().replace(' ', '-')}-"
-                  f"{int(prix)}.txt", mime="text/plain")
+                  f"{int(prix)}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument."
+             "spreadsheetml.sheet")
 
 
 # ----------------------------------------------------------------------
@@ -487,17 +496,62 @@ def page_evaluateur(p, cap):
             st.dataframe(ui.table_ecoles(e["donnees"]), width="stretch",
                          hide_index=True)
 
-    extras = {}
-    if fc["ok"] and fc["donnees"].get("densite_hab_km2"):
-        extras["Densité"] = f"{fc['donnees']['densite_hab_km2']} hab/km²"
+    blocs = []
+    infos_commune = []
+    if fc["ok"]:
+        for cle, lib_ in [("population", "Population"),
+                          ("densite_hab_km2", "Densité (hab/km²)"),
+                          ("surface_km2", "Superficie (km²)")]:
+            if fc["donnees"].get(cle):
+                infos_commune.append((lib_, fc["donnees"][cle]))
+    if infos_commune:
+        blocs.append(("La commune", infos_commune))
+    risques_bloc = []
     if a["ok"]:
-        extras["Exposition argile"] = a["donnees"]["exposition"]
+        risques_bloc.append(("Exposition au retrait-gonflement des argiles",
+                             a["donnees"]["exposition"]))
+    if r2["ok"] and r2["donnees"]["classe"]:
+        risques_bloc.append(("Classe de potentiel radon",
+                             r2["donnees"]["classe"]))
+    if risques_bloc:
+        blocs.append(("Les risques", risques_bloc))
+    dpe_res = dpe_c(d["code_insee"])
+    if dpe_res["ok"]:
+        rep = ui.repartition_dpe(dpe_res["donnees"])
+        if rep:
+            blocs.append(("Étiquettes énergie de la commune",
+                          [(f"Classe {l}", n) for l, n in sorted(rep.items())]))
+    osm_res = osm_c(d["lat"], d["lon"], 600)
+    if osm_res["ok"]:
+        blocs.append(("Équipements à moins de 600 mètres",
+                      [(x["categorie"],
+                        f"{x['nombre']} dont le plus proche à "
+                        f"{x['plus_proche_m']} m" if x["plus_proche_m"]
+                        else "aucun") for x in osm_res["donnees"]]))
+    ecoles_res = ecoles_c(d["code_insee"])
+    if ecoles_res["ok"]:
+        avec_ips = [x for x in ecoles_res["donnees"] if x.get("ips")]
+        if avec_ips:
+            blocs.append(("Établissements et indice de position sociale",
+                          [(x["établissement"], x["ips"])
+                           for x in avec_ips[:12]]))
+
+    st.divider()
+    st.subheader("Emporter la fiche de ce bien")
+    ui.note("Sept onglets : synthèse avec le verdict, modèle de financement "
+            "recalculable, échéancier graphique, les ventes réelles du "
+            "quartier, le contexte de l'adresse, ta checklist et le lexique.")
     st.download_button(
-        "Télécharger la fiche de ce bien",
-        ui.fiche_recap(d["label"], d["commune"], prix, surface, dispositif,
-                       m, cap, dec, extras),
+        "Télécharger le rapport Excel",
+        rapport.construire(prix, surface, dispositif, m, cap, lib.GLOSSAIRE,
+                           guide.CHECKLIST, B,
+                           B["brs"]["redevance_eur_m2_mois_defaut"],
+                           d["label"], d["commune"], dec,
+                           v["donnees"] if v["ok"] else None, blocs),
         file_name=f"fiche-{d['commune'].lower().replace(' ', '-')}-"
-                  f"{int(prix)}.txt", mime="text/plain")
+                  f"{int(prix)}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument."
+             "spreadsheetml.sheet")
 
 
 # ----------------------------------------------------------------------
@@ -545,32 +599,58 @@ def page_liens(p, cap):
     sites = boris_sites_c(d["lat"], d["lon"], rayon)
     if not sites["ok"]:
         ui.verdict("non", "Annuaire BoRiS indisponible", sites.get("message"))
-    elif not sites["donnees"]:
+        return
+    if not sites["donnees"]:
         ui.note("Aucun site recensé dans ce rayon. Élargis le rayon, ou "
                 "consulte la carte nationale sur boris.beta.gouv.fr.")
-    else:
-        st.caption(f"Source : {sites['source']}")
-        for s in sites["donnees"][:12]:
-            with st.container(border=True):
-                c1, c2 = st.columns([3, 1])
-                nom = s.get("distributorName") or s.get("ofsName") or "Site"
-                infos = " · ".join(x for x in [
-                    f"{s.get('city') or ''} {s.get('zipcode') or ''}".strip(),
-                    f"OFS {s['ofsName']}" if s.get("ofsName") else ""] if x)
-                c1.markdown(f"**{nom}**" + (f"  \n{infos}" if infos else ""))
-                if s.get("source"):
-                    c2.link_button("Ouvrir", s["source"], width="stretch")
+        return
 
-    ofs = boris_ofs_c(ville, rayon)
-    if ofs["ok"] and ofs["donnees"]:
+    # BoRiS renvoie une entrée par commune : le même opérateur apparaît donc
+    # jusqu'à dix fois. On regroupe par opérateur et on liste ses communes,
+    # ce qui est à la fois plus court et plus informatif.
+    groupes = {}
+    for s in sites["donnees"]:
+        nom = (s.get("distributorName") or s.get("ofsName") or "Site").strip()
+        url = (s.get("source") or "").strip()
+        cle = (nom, url)
+        g = groupes.setdefault(cle, {"nom": nom, "url": url,
+                                     "ofs": set(), "communes": []})
+        if s.get("ofsName"):
+            g["ofs"].add(s["ofsName"].strip())
+        ville_s = " ".join(x for x in [str(s.get("city") or "").strip(),
+                                       str(s.get("zipcode") or "").strip()] if x)
+        if ville_s and ville_s not in g["communes"]:
+            g["communes"].append(ville_s)
+
+    st.caption(f"Source : {sites['source']} · {len(groupes)} opérateurs "
+               f"distincts sur {len(sites['donnees'])} entrées")
+    for g in sorted(groupes.values(), key=lambda x: -len(x["communes"])):
+        with st.container(border=True):
+            c1, c2 = st.columns([3, 1])
+            c1.markdown(f"**{g['nom']}**")
+            if g["ofs"]:
+                c1.caption("Foncier porté par " + ", ".join(sorted(g["ofs"])))
+            if g["communes"]:
+                visibles = g["communes"][:6]
+                suite = (f" et {len(g['communes']) - 6} autre(s)"
+                         if len(g["communes"]) > 6 else "")
+                c1.caption("Présent à " + ", ".join(visibles) + suite)
+            if g["url"]:
+                c2.link_button("Ouvrir", g["url"], width="stretch")
+            else:
+                c2.caption("Pas d'adresse web publiée")
+
+    # La liste des organismes de foncier solidaire se déduit des entrées
+    # ci-dessus, ce qui évite un appel supplémentaire et un tableau vide.
+    tous_ofs = sorted({o for g in groupes.values() for o in g["ofs"]})
+    if tous_ofs:
         st.header("Les organismes de foncier solidaire compétents")
         ui.note("C'est chez eux que tu t'inscris sur liste de candidats, et "
-                "c'est le canal qui attrape les biens avant publication.")
-        try:
-            st.dataframe(pd.DataFrame(ofs["donnees"]), width="stretch",
-                         hide_index=True)
-        except Exception:
-            st.json(ofs["donnees"])
+                "c'est le canal qui attrape les biens avant publication. "
+                "Demande explicitement les logements déjà livrés et "
+                "disponibles, pas seulement les prochains lancements.")
+        for o in tous_ofs:
+            st.markdown(f"- **{o}**")
 
 
 # ----------------------------------------------------------------------
