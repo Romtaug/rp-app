@@ -262,15 +262,21 @@ def _extraire(p: dict, candidats: tuple) -> float | None:
     return None
 
 
-def ventes_dvf(lat: float, lon: float, rayon_m: int = 400) -> dict:
+def ventes_dvf(lat: float, lon: float, rayon_m: int = 400,
+               code_insee: str | None = None) -> dict:
     """Ventes réelles autour d'un point.
 
-    Ordre revu après diagnostic réel du 03/08/2026 : l'API du Cerema est
-    hébergée sur une instance de préproduction et dépassait les 15 secondes.
-    On interroge donc d'abord l'API communautaire cquest, légère et conçue
-    pour une requête par rayon, puis le Cerema en second avec un délai plus
-    généreux. Les deux messages d'erreur sont remontés, pour ne plus masquer
-    l'échec du repli derrière celui de la source principale.
+    Trois sources en cascade, après les diagnostics réels des 3 et 4 août
+    2026 qui ont vu cquest renvoyer une erreur 502 et le Cerema dépasser
+    45 secondes :
+
+      1. api.cquest.org, requête par rayon, la plus rapide quand elle répond
+      2. geo-dvf d'Etalab, un fichier CSV officiel par commune, servi en
+         statique donc très fiable, filtré ensuite par distance réelle
+      3. Cerema apidf, emprise rectangulaire, instance de préproduction lente
+
+    Tous les messages d'erreur sont remontés, pour ne jamais masquer l'échec
+    d'un repli derrière celui de la source principale.
     """
     erreurs = []
 
@@ -294,7 +300,47 @@ def ventes_dvf(lat: float, lon: float, rayon_m: int = 400) -> dict:
     else:
         erreurs.append("cquest : " + str(res["message"]))
 
-    # Source 2 : Cerema, emprise rectangulaire, plus lent donc délai allongé
+    # Source 2 : geo-dvf d'Etalab, un fichier CSV par commune, officiel,
+    # léger et servi en statique. Le millésime le plus récent d'abord.
+    if code_insee:
+        for annee in ("2025", "2024", "2023"):
+            dep = code_insee[:3] if code_insee[:2] in ("97", "98") else code_insee[:2]
+            url = (f"https://files.data.gouv.fr/geo-dvf/latest/csv/{annee}"
+                   f"/communes/{dep}/{code_insee}.csv")
+            try:
+                rep = requests.get(url, headers=UA, timeout=30)
+                if rep.status_code != 200:
+                    continue
+                import csv
+                import io
+                lignes = []
+                for row in csv.DictReader(io.StringIO(rep.text)):
+                    try:
+                        vlat = float(row.get("latitude") or 0)
+                        vlon = float(row.get("longitude") or 0)
+                        val = float(row.get("valeur_fonciere") or 0)
+                        surf = float(row.get("surface_reelle_bati") or 0)
+                    except (TypeError, ValueError):
+                        continue
+                    if not (vlat and vlon and val > 0 and surf >= 9):
+                        continue
+                    if _dist_m(lat, lon, vlat, vlon) > rayon_m:
+                        continue
+                    lignes.append({"date": row.get("date_mutation"),
+                                   "type": row.get("type_local"),
+                                   "prix": val, "surface": surf,
+                                   "prix_m2": val / surf})
+                if lignes:
+                    return {"ok": True,
+                            "source": f"geo-dvf Etalab {annee} (officiel)",
+                            "donnees": lignes}
+            except Exception as e:
+                erreurs.append(f"geo-dvf {annee} : {type(e).__name__}")
+                break
+        else:
+            erreurs.append("geo-dvf : aucun millésime disponible")
+
+    # Source 3 : Cerema, emprise rectangulaire, plus lent donc délai allongé
     dlat = rayon_m / 111320.0
     dlon = rayon_m / (111320.0 * max(math.cos(math.radians(lat)), 0.2))
     bbox = f"{lon - dlon},{lat - dlat},{lon + dlon},{lat + dlat}"
