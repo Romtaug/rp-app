@@ -1,1 +1,14 @@
+# Palette « papier de géomètre ». Voir ui.py pour la direction complète.
+[theme]
+base = "light"
+primaryColor = "#1F4E5F"
+backgroundColor = "#EDF1F4"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#16303F"
 
+[server]
+# Pas de collecte d'usage sur une application personnelle.
+headless = true
+
+[browser]
+gatherUsageStats = false
