@@ -191,9 +191,11 @@ def charger_baremes() -> dict:
 # 3. APIS
 # ----------------------------------------------------------------------
 
-def _get(url: str, params: dict | None = None) -> dict:
+def _get(url: str, params: dict | None = None,
+         timeout: int | None = None) -> dict:
     try:
-        r = requests.get(url, params=params, headers=UA, timeout=TIMEOUT)
+        r = requests.get(url, params=params, headers=UA,
+                         timeout=timeout or TIMEOUT)
         if r.status_code != 200:
             return {"ok": False, "donnees": None,
                     "message": f"HTTP {r.status_code}", "url": r.url}
@@ -261,51 +263,62 @@ def _extraire(p: dict, candidats: tuple) -> float | None:
 
 
 def ventes_dvf(lat: float, lon: float, rayon_m: int = 400) -> dict:
-    """Ventes réelles autour d'un point. Source principale : API ouverte du
-    Cerema (apidf, DVF+). Repli : API communautaire cquest."""
-    dlat = rayon_m / 111320.0
-    dlon = rayon_m / (111320.0 * max(math.cos(math.radians(lat)), 0.2))
-    bbox = f"{lon - dlon},{lat - dlat},{lon + dlon},{lat + dlat}"
+    """Ventes réelles autour d'un point.
 
-    lignes = []
-    res = _get("https://apidf-preprod.cerema.fr/dvf_opendata/geomutations/",
-               {"in_bbox": bbox, "page_size": 500})
+    Ordre revu après diagnostic réel du 03/08/2026 : l'API du Cerema est
+    hébergée sur une instance de préproduction et dépassait les 15 secondes.
+    On interroge donc d'abord l'API communautaire cquest, légère et conçue
+    pour une requête par rayon, puis le Cerema en second avec un délai plus
+    généreux. Les deux messages d'erreur sont remontés, pour ne plus masquer
+    l'échec du repli derrière celui de la source principale.
+    """
+    erreurs = []
+
+    # Source 1 : cquest, requête par rayon, légère
+    res = _get("https://api.cquest.org/dvf",
+               {"lat": lat, "lon": lon, "dist": rayon_m}, timeout=20)
     if res["ok"]:
-        feats = (res["donnees"] or {}).get("features") or []
-        for f in feats:
-            p = f.get("properties", {})
-            val = _extraire(p, ("valeurfonc", "valeur_fonciere"))
-            surf = _extraire(p, ("sbati", "surface_relle_bati", "surface_reelle_bati"))
-            if not val or not surf or surf < 9 or val <= 0:
-                continue
-            lignes.append({
-                "date": p.get("datemut") or p.get("date_mutation"),
-                "type": p.get("libtypbien") or p.get("type_local"),
-                "prix": val, "surface": surf, "prix_m2": val / surf,
-            })
-        if lignes:
-            return {"ok": True, "source": "Cerema apidf (DVF+)", "donnees": lignes}
-
-    res2 = _get("https://api.cquest.org/dvf",
-                {"lat": lat, "lon": lon, "dist": rayon_m})
-    if res2["ok"]:
-        feats = (res2["donnees"] or {}).get("features") or []
-        for f in feats:
+        lignes = []
+        for f in (res["donnees"] or {}).get("features") or []:
             p = f.get("properties", {})
             val = _extraire(p, ("valeur_fonciere",))
             surf = _extraire(p, ("surface_relle_bati", "surface_reelle_bati"))
             if not val or not surf or surf < 9 or val <= 0:
                 continue
-            lignes.append({
-                "date": p.get("date_mutation"),
-                "type": p.get("type_local"),
-                "prix": val, "surface": surf, "prix_m2": val / surf,
-            })
+            lignes.append({"date": p.get("date_mutation"),
+                           "type": p.get("type_local"), "prix": val,
+                           "surface": surf, "prix_m2": val / surf})
         if lignes:
-            return {"ok": True, "source": "api.cquest.org (repli)", "donnees": lignes}
+            return {"ok": True, "source": "api.cquest.org (DVF)", "donnees": lignes}
+        erreurs.append("cquest : aucune vente exploitable")
+    else:
+        erreurs.append("cquest : " + str(res["message"]))
 
-    msg = res.get("message") or res2.get("message") or "Aucune vente trouvée"
-    return {"ok": False, "source": "DVF", "message": msg}
+    # Source 2 : Cerema, emprise rectangulaire, plus lent donc délai allongé
+    dlat = rayon_m / 111320.0
+    dlon = rayon_m / (111320.0 * max(math.cos(math.radians(lat)), 0.2))
+    bbox = f"{lon - dlon},{lat - dlat},{lon + dlon},{lat + dlat}"
+    res2 = _get("https://apidf-preprod.cerema.fr/dvf_opendata/geomutations/",
+                {"in_bbox": bbox, "page_size": 200}, timeout=45)
+    if res2["ok"]:
+        lignes = []
+        for f in (res2["donnees"] or {}).get("features") or []:
+            p = f.get("properties", {})
+            val = _extraire(p, ("valeurfonc", "valeur_fonciere"))
+            surf = _extraire(p, ("sbati", "surface_relle_bati",
+                                 "surface_reelle_bati"))
+            if not val or not surf or surf < 9 or val <= 0:
+                continue
+            lignes.append({"date": p.get("datemut") or p.get("date_mutation"),
+                           "type": p.get("libtypbien") or p.get("type_local"),
+                           "prix": val, "surface": surf, "prix_m2": val / surf})
+        if lignes:
+            return {"ok": True, "source": "Cerema apidf (DVF+)", "donnees": lignes}
+        erreurs.append("Cerema : aucune vente exploitable")
+    else:
+        erreurs.append("Cerema : " + str(res2["message"]))
+
+    return {"ok": False, "source": "DVF", "message": " | ".join(erreurs)}
 
 
 def dpe_par_commune(code_insee: str, limite: int = 200) -> dict:
@@ -419,8 +432,12 @@ def zonage_urbanisme(lat: float, lon: float) -> dict:
             "donnees": [f.get("properties", {}) for f in feats]}
 
 
-_OVERPASS_URLS = ["https://overpass-api.de/api/interpreter",
-                  "https://overpass.kumi.systems/api/interpreter"]
+_OVERPASS_URLS = [
+    # Miroir francais de l'OSM-FR en premier : plus proche, moins charge.
+    "https://overpass.openstreetmap.fr/api/interpreter",
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
+]
 
 _CATEGORIES_OSM = {
     "Transports": lambda t: (t.get("highway") == "bus_stop"
@@ -432,24 +449,31 @@ _CATEGORIES_OSM = {
 
 
 def equipements_osm(lat: float, lon: float, rayon_m: int = 600) -> dict:
-    """Équipements du quartier via OpenStreetMap (Overpass, sans clé) :
-    transports, écoles, commerces, santé, avec la distance du plus proche."""
-    requete = f"""
-    [out:json][timeout:20];
-    (
-      node(around:{rayon_m},{lat},{lon})[highway=bus_stop];
-      node(around:{rayon_m},{lat},{lon})[railway~"^(station|tram_stop)$"];
-      node(around:{rayon_m},{lat},{lon})[amenity~"^(school|pharmacy|doctors)$"];
-      node(around:{rayon_m},{lat},{lon})[shop~"^(supermarket|bakery|convenience)$"];
-    );
-    out body;
+    """Équipements du quartier via OpenStreetMap Overpass, sans clé.
+
+    Corrigé après diagnostic réel du 03/08/2026 : les serveurs Overpass
+    publics sont lents et souvent saturés. Trois mesures : le miroir
+    français OSM-FR est essayé en premier, la requête est fusionnée en une
+    seule clause au lieu de quatre, et la sortie est allégée (out skel).
     """
-    derniere_erreur = ""
+    requete = (
+        f"[out:json][timeout:25];("
+        f"node(around:{rayon_m},{lat},{lon})"
+        f'["amenity"~"^(school|pharmacy|doctors)$"];'
+        f"node(around:{rayon_m},{lat},{lon})"
+        f'["shop"~"^(supermarket|bakery|convenience)$"];'
+        f"node(around:{rayon_m},{lat},{lon})"
+        f'["highway"="bus_stop"];'
+        f"node(around:{rayon_m},{lat},{lon})"
+        f'["railway"~"^(station|tram_stop)$"];'
+        f");out body qt;"
+    )
+    erreurs = []
     for url in _OVERPASS_URLS:
         try:
-            r = requests.post(url, data={"data": requete}, headers=UA, timeout=30)
+            r = requests.post(url, data={"data": requete}, headers=UA, timeout=45)
             if r.status_code != 200:
-                derniere_erreur = f"HTTP {r.status_code}"
+                erreurs.append(f"{url.split('/')[2]} : HTTP {r.status_code}")
                 continue
             elements = (r.json() or {}).get("elements") or []
             lignes = []
@@ -463,12 +487,12 @@ def equipements_osm(lat: float, lon: float, rayon_m: int = 600) -> dict:
                            for e in membres if "lat" in e and "lon" in e)
                 lignes.append({"categorie": nom_cat, "nombre": len(membres),
                                "plus_proche_m": round(dmin)})
-            return {"ok": True, "source": "OpenStreetMap Overpass",
+            return {"ok": True, "source": f"OpenStreetMap ({url.split('/')[2]})",
                     "donnees": lignes, "rayon_m": rayon_m}
         except Exception as e:
-            derniere_erreur = str(e)
+            erreurs.append(f"{url.split('/')[2]} : {type(e).__name__}")
     return {"ok": False, "source": "OpenStreetMap Overpass",
-            "message": derniere_erreur or "aucun miroir n'a répondu"}
+            "message": " | ".join(erreurs) or "aucun miroir n'a répondu"}
 
 
 def ecoles_education(code_insee: str, limite: int = 30) -> dict:
@@ -513,29 +537,56 @@ def ecoles_education(code_insee: str, limite: int = 30) -> dict:
             "donnees": lignes, "ips_disponibles": len(ips_par_uai)}
 
 
-def programmes_brs_grand_lyon() -> dict:
-    """Programmes BRS publiés par la Métropole de Lyon, API Features OGC."""
+def programmes_brs_grand_lyon(autoriser_repli: bool = True) -> dict:
+    """Programmes BRS de la Métropole de Lyon, API Features OGC.
+
+    Diagnostic réel du 03/08/2026 : cette source répond parfaitement depuis
+    GitHub Actions (la veille a détecté 27 programmes) mais refuse la
+    connexion depuis Streamlit Community Cloud. D'où le repli : la veille
+    quotidienne écrit un instantané complet dans data/programmes_brs.json,
+    committé dans le dépôt, que l'application lit quand l'API est
+    injoignable. Les données restent fraîches à 24 heures près.
+    """
     base = "https://data.grandlyon.com/geoserver/ogc/features/v1/collections"
-    res = _get(base, {"f": "json"})
-    if not res["ok"]:
-        return {"ok": False, "source": "data.grandlyon", "message": res["message"]}
-    cols = (res["donnees"] or {}).get("collections") or []
-    cible = None
-    for c in cols:
-        libelle = f"{c.get('id', '')} {c.get('title', '')}".lower()
-        if "bail" in libelle or "brs" in libelle:
-            cible = c.get("id")
-            break
-    if not cible:
-        return {"ok": False, "source": "data.grandlyon",
-                "message": "Collection BRS non trouvée dans la liste. Ouvre "
-                           "l'onglet API du jeu de données et note son identifiant."}
-    res2 = _get(f"{base}/{cible}/items", {"limit": 500, "f": "json"})
-    if not res2["ok"]:
-        return {"ok": False, "source": "data.grandlyon", "message": res2["message"]}
-    feats = (res2["donnees"] or {}).get("features") or []
-    return {"ok": True, "source": f"data.grandlyon / {cible}",
-            "donnees": [f.get("properties", {}) for f in feats]}
+    res = _get(base, {"f": "json"}, timeout=30)
+    if res["ok"]:
+        cols = (res["donnees"] or {}).get("collections") or []
+        cible = None
+        for c in cols:
+            libelle = f"{c.get('id', '')} {c.get('title', '')}".lower()
+            if "bail" in libelle or "brs" in libelle:
+                cible = c.get("id")
+                break
+        if cible:
+            res2 = _get(f"{base}/{cible}/items", {"limit": 500, "f": "json"},
+                        timeout=30)
+            if res2["ok"]:
+                feats = (res2["donnees"] or {}).get("features") or []
+                return {"ok": True, "source": f"data.grandlyon / {cible}",
+                        "donnees": [f.get("properties", {}) for f in feats]}
+        else:
+            return {"ok": False, "source": "data.grandlyon",
+                    "message": "Collection BRS non trouvée dans la liste."}
+
+    if autoriser_repli:
+        chemin = os.path.join(RACINE, "data", "programmes_brs.json")
+        if os.path.exists(chemin):
+            try:
+                with open(chemin, encoding="utf-8") as f:
+                    snap = json.load(f)
+                return {"ok": True,
+                        "source": (f"instantané local du "
+                                   f"{snap.get('date', 'inconnu')} "
+                                   f"(API injoignable)"),
+                        "donnees": snap.get("programmes", [])}
+            except Exception as e:
+                return {"ok": False, "source": "data.grandlyon",
+                        "message": f"API injoignable et instantané illisible : {e}"}
+
+    return {"ok": False, "source": "data.grandlyon",
+            "message": (str(res["message"]) + " | aucun instantané local "
+                        "disponible : lance le workflow Veille sur GitHub, "
+                        "il en écrira un")}
 
 
 _BORIS = "https://boris.beta.gouv.fr/api"
@@ -561,9 +612,9 @@ def boris_sites_annonces(lat: float, lon: float, rayon_km: int = 30,
     source (URL du site), distributorName, ofsName, city, zipcode."""
     res = _get(f"{_BORIS}/brs-diffusion-websites",
                {"latitude": lat, "longitude": lon, "radius": rayon_km,
-                "page": 1, "pageSize": limite})
+                "page": 1, "pageSize": limite}, timeout=20)
     if not res["ok"]:
-        res2 = _get(f"{_BORIS}/brs-diffusion-websites/all")
+        res2 = _get(f"{_BORIS}/brs-diffusion-websites/all", timeout=20)
         if not res2["ok"]:
             return {"ok": False, "source": "BoRiS",
                     "message": res.get("message") or res2.get("message")}
@@ -581,12 +632,13 @@ def boris_ofs_proche(adresse: str, rayon_km: int = 20) -> dict:
     """Les organismes de foncier solidaire compétents autour d'une adresse,
     via la route publique find-my-ofs de BoRiS."""
     res = _get(f"{_BORIS}/find-my-ofs",
-               {"address": adresse, "radius": rayon_km})
+               {"address": adresse, "radius": rayon_km}, timeout=20)
     if not res["ok"]:
         return {"ok": False, "source": "BoRiS find-my-ofs",
                 "message": res["message"]}
     return {"ok": True, "source": "BoRiS find-my-ofs",
             "donnees": _liste_defensive(res["donnees"]) or res["donnees"]}
+
 
 
 # ----------------------------------------------------------------------
