@@ -37,6 +37,7 @@ Le thème des widgets natifs vit dans `.streamlit/config.toml`, la couche prése
 |---|---|
 | Guide débutant | Les dispositifs expliqués de zéro : fiches BRS/PSLA/vente HLM/prix maîtrisé, les 3 prêts, lequel choisir, le parcours en 7 étapes, les 8 pièges, qui appeler |
 | Tableau de bord | Ta capacité d'emprunt, tes plafonds, ta tranche PTZ, et un glossaire complet |
+| Rapport Excel | Sept onglets avec graphiques et formules vivantes : synthèse, modèle de financement recalculable, échéancier, ventes du quartier, contexte, checklist, lexique |
 | Simulateur de montage | Le plan de financement empilé et les deux phases de mensualité, avec verdict |
 | Évaluateur d'adresse | Verdict finançable en tête, décote contre les ventes réelles, DPE, risques avec argile et radon, parcelle et zonage, vie de quartier OpenStreetMap, écoles avec indice de position sociale |
 | Générateur de liens | Les URL de recherche à enregistrer en alertes sur les portails |
