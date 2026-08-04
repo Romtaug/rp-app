@@ -19,7 +19,7 @@ import lib
 import rapport
 import ui
 
-st.set_page_config(page_title="Accession aidée", page_icon="🗝",
+st.set_page_config(page_title="Clé de Sol", page_icon="🗝",
                    layout="wide", initial_sidebar_state="expanded")
 ui.injecter_styles()
 
@@ -51,6 +51,9 @@ DISPOSITIFS = ["BRS", "PSLA", "Vente HLM", "Neuf QPV", "Neuf libre", "Ancien lib
 # ----------------------------------------------------------------------
 
 def profil_sidebar():
+    st.sidebar.markdown("## Clé de Sol")
+    st.sidebar.caption("Trouver et chiffrer un logement en accession aidée")
+    st.sidebar.divider()
     st.sidebar.markdown("### Ton profil")
     st.sidebar.caption("Saisi une fois, utilisé par toutes les pages.")
 
@@ -104,7 +107,8 @@ def profil_sidebar():
 # ----------------------------------------------------------------------
 
 def page_guide(p, cap):
-    st.title("Acheter sa résidence principale avec les aides")
+    st.title("Clé de Sol")
+    st.caption("Acheter sa résidence principale avec les aides, expliqué de zéro")
     ui.verdict("neutre",
                "Deux familles à ne pas confondre, et elles se cumulent",
                "Les dispositifs font baisser le PRIX du logement, et tu en "
