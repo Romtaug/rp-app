@@ -18,14 +18,27 @@ streamlit run app.py
 3. Dans les réglages de l'app, section Sharing, passe l'app en privé et n'invite que ton adresse mail
 4. Rien d'autre à configurer : aucune des API utilisées ne demande de clé
 
-## Les cinq pages
+## Direction graphique
+
+Papier de géomètre. Le sujet de l'application est le foncier, et le bail réel solidaire sépare littéralement le sol du bâti : la palette vient donc du plan cadastral, papier bleu-gris et encre pétrole, avec l'or réservé à tout ce que l'État prête gratuitement ou à 1 %. Les montants sont composés en IBM Plex Mono à chiffres tabulaires pour s'aligner en colonne et se lire comme un relevé.
+
+Deux éléments signature, tous deux en HTML et SVG sans dépendance supplémentaire :
+
+- **La barre de strates** du plan de financement, où la part dorée montre d'un coup d'œil ce que tu ne paies pas.
+- **Le profil en marches sur 25 ans**, qui dessine le saut de mensualité à la fin du différé du prêt à taux zéro face à ta capacité. C'est la phase 2 que la banque teste, et aucun simulateur du marché ne la représente.
+
+Le verdict est placé avant le récapitulatif des saisies, ce qui inverse l'ordre habituel formulaire puis résultat. C'est délibéré : l'application n'a qu'une question à trancher.
+
+Le thème des widgets natifs vit dans `.streamlit/config.toml`, la couche présentation dans `ui.py`. La logique financière de `lib.py` n'a pas été touchée par la refonte.
+
+## Les six pages
 
 | Page | Ce qu'elle fait |
 |---|---|
 | Guide débutant | Les dispositifs expliqués de zéro : fiches BRS/PSLA/vente HLM/prix maîtrisé, les 3 prêts, lequel choisir, le parcours en 7 étapes, les 8 pièges, qui appeler |
 | Tableau de bord | Ta capacité d'emprunt, tes plafonds, ta tranche PTZ, et un glossaire complet |
 | Simulateur de montage | Le plan de financement empilé et les deux phases de mensualité, avec verdict |
-| Évaluateur d'adresse | Décote contre les ventes réelles, DPE, risques avec argile et radon, parcelle et zonage, vie de quartier OpenStreetMap, écoles avec indice de position sociale |
+| Évaluateur d'adresse | Verdict finançable en tête, décote contre les ventes réelles, DPE, risques avec argile et radon, parcelle et zonage, vie de quartier OpenStreetMap, écoles avec indice de position sociale |
 | Générateur de liens | Les URL de recherche à enregistrer en alertes sur les portails |
 | Diagnostic des sources | Teste chaque API et te dit laquelle est cassée |
 
@@ -59,6 +72,18 @@ streamlit run app.py
 **Le healthcheck** (`.github/workflows/healthcheck.yml`) tourne chaque lundi à 7h. Il appelle les treize sources de l'app et vérifie l'âge des barèmes (alerte au-delà de 330 jours). En cas de panne, le run passe au rouge et **GitHub t'envoie nativement un mail d'échec, sans aucune configuration**. Si les secrets Brevo sont présents, un mail détaillé nommant la source tombée est envoyé en plus. Silence total quand tout va bien.
 
 Secrets GitHub optionnels pour les mails Brevo : `BREVO_API_KEY`, `MAIL_DEST`, `MAIL_EXP`. Pour la veille, active aussi Settings > Actions > General > Workflow permissions > Read and write.
+
+## Diagnostic réel du 03/08/2026 et correctifs
+
+Premier lancement en conditions réelles depuis Streamlit Cloud : **10 sources sur 13 répondent immédiatement**. Les trois échecs étaient des timeouts, aucune erreur 404 ni d'authentification, donc tous les endpoints étaient corrects. Correctifs appliqués :
+
+| Source | Diagnostic | Correctif |
+|---|---|---|
+| DVF | L'API du Cerema est hébergée sur une instance de préproduction et dépassait 15 s | cquest passe en source principale (requête par rayon, légère), le Cerema en second avec 45 s. Les deux messages d'erreur sont désormais remontés au lieu que celui du repli soit masqué |
+| OpenStreetMap | Serveurs publics saturés, timeout à 30 s | Miroir français OSM-FR essayé en premier, requête fusionnée en une seule clause au lieu de quatre, délai à 45 s, trois miroirs |
+| data.grandlyon | **Répond parfaitement depuis GitHub Actions** (27 programmes détectés) mais refuse la connexion depuis Streamlit Cloud | La veille écrit désormais un instantané complet dans `data/programmes_brs.json`, committé dans le dépôt. L'application le lit quand l'API est injoignable. Données fraîches à 24 h près |
+
+Le troisième correctif est le plus intéressant : il exploite le fait que GitHub Actions a un accès réseau complet là où Streamlit Cloud est bridé. L'automatisation devient la source de données de l'interface.
 
 ## Vérification finale (31/07/2026)
 
