@@ -34,7 +34,7 @@ def tester_sources() -> list:
     resultats.append(("Geoplateforme, geocodage", g["ok"], g.get("message", "")))
     if g["ok"]:
         d = g["donnees"]
-        v = lib.ventes_dvf(d["lat"], d["lon"], 300)
+        v = lib.ventes_dvf(d["lat"], d["lon"], 300, d["code_insee"])
         resultats.append(("DVF (Cerema puis cquest)", v["ok"],
                           v.get("message", f"{len(v.get('donnees') or [])} ventes")))
         z = lib.zonage_urbanisme(d["lat"], d["lon"])
